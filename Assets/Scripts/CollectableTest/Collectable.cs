@@ -6,19 +6,38 @@ public class Collectable : MonoBehaviour, ICollectable
 
     private Rigidbody rb;
     private int currentInvocations = 0;
+    private Vector3 newPosition;
+    private bool ShouldCollect = false;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+    }
+
+    private void Update()
+    {
+        if(ShouldCollect && transform.position != newPosition)
+        {
+            transform.position = Vector3.Lerp(transform.position, newPosition, Time.deltaTime * 20f);
+            // make a condition to check if the object is close enough to the parent
+            if(Vector3.Distance(transform.position, newPosition) < 0.1f)
+            {
+                Debug.Log("Collected");
+                transform.position = newPosition;
+                ShouldCollect = false;
+            }
+        }
     }
     
     public void Collect(Transform parent)
     {
         rb.useGravity = false;
         rb.Sleep();
-        transform.position = parent.position;
+        newPosition = parent.position;
         transform.SetParent(parent);
+        ShouldCollect = true;
     }
+    
 
     public void Drop()
     {   
@@ -30,7 +49,7 @@ public class Collectable : MonoBehaviour, ICollectable
     {
         rb.useGravity = true;
         transform.SetParent(null);
-        rb.AddForce(direction * 2.5f, ForceMode.Impulse);
+        rb.AddForce(direction * 3f, ForceMode.Impulse);
         InvokeRepeating(nameof(BringToStopSlowly), 1f, .1f);
     }
 
